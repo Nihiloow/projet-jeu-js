@@ -15,7 +15,7 @@ Entités :
   - pathFollowing() → Savoir où aller et le faire avancer
   - dismiss() → Fait disparaître l'entité si 0 hp et ajoute value a score
   - collisionWith(this) → "this" perd de la vie
-  - isAlive → (à vérifier si vrm utile)
+  - isAlive →
 
 ...............
 
@@ -107,3 +107,12 @@ Ressources utiles :
 
 spriters-ressource.com
 rpgmakervx-fr.com
+https://refactoring.guru/design-patterns/composite
+
+---
+
+TODO :
+
+- Sauvegarde localstorage
+- JSON
+- Architecture

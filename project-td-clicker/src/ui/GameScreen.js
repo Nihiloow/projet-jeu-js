@@ -1,4 +1,4 @@
-import mapImage from "../../public/assets/map.png";
+import mapImage1 from "../../public/assets/map1.png";
 
 import { Entity } from "../entities/Entity.js";
 
@@ -9,8 +9,7 @@ canvas.width = 480;
 canvas.height = 320;
 
 const img = new Image();
-console.log(mapImage);
-img.src = mapImage;
+img.src = mapImage1;
 
 const entity = new Entity(30, 30);
 

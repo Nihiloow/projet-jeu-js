@@ -1,3 +1,5 @@
+import "../utils/data/mapPaths.json";
+
 export class Entity {
   // ? TEMP set waypoint list until final map
   #waypoints = [

@@ -1,12 +1,8 @@
 import "../utils/data/mapPaths.json";
+import mapPaths from "../utils/data/mapPaths.json";
 
 export class Entity {
-  // ? TEMP set waypoint list until final map
-  #waypoints = [
-    { x: 400, y: 300 },
-    { x: 0, y: 0 },
-  ];
-
+  #waypoints;
   #position = {
     x: 0,
     y: 0,
@@ -22,14 +18,9 @@ export class Entity {
     y: null,
   };
 
-  #waypointIndex = 0; // says which waypoint is tracked
+  #waypointIndex = 1; // says which waypoint is tracked
 
-  constructor(
-    width,
-    height,
-    x = this.#waypoints[0].x,
-    y = this.#waypoints[0].y,
-  ) {
+  constructor(width, height, mapName, x, y) {
     if (typeof width === "number" && width > 0) {
       this.#size.width = width;
     } else {
@@ -42,23 +33,42 @@ export class Entity {
       throw new Error("Height of entity must be a number greater than 0.");
     }
 
+    this.#waypoints = this.#getPath(mapName);
+
     if (typeof x === "number") {
       this.#position.x = x;
     } else if (typeof x !== "undefined") {
       throw new Error("X coordinate must be a number.");
+    } else {
+      this.#position.x = this.#waypoints[0].x;
     }
 
     if (typeof y === "number") {
       this.#position.y = y;
     } else if (typeof y !== "undefined") {
       throw new Error("Y coordinate must be a number");
+    } else {
+      this.#position.y = this.#waypoints[0].y;
     }
+    //center used to center entity on track
     this.#setCenter();
+
+    //manual set of object on center of track for start
+    this.#position.x -= this.#center.x - this.#position.x;
+    this.#position.y -= this.#center.y - this.#position.y;
   }
 
   #setCenter() {
     this.#center.x = this.#position.x + this.#size.width / 2;
     this.#center.y = this.#position.y + this.#size.height / 2;
+  }
+
+  #getPath(mapName) {
+    const currentMapPath = mapPaths[mapName];
+    if (typeof currentMapPath !== "undefined") {
+      return currentMapPath;
+    }
+    throw new Error("Map name not found in data file");
   }
 
   #draw(canvas) {
@@ -75,10 +85,10 @@ export class Entity {
     this.#draw(canvas);
 
     //pathfinding
-    const waypoint = this.#waypoints[this.#waypointIndex];
-    const yDistance = waypoint.y - this.#center.y;
-    const xDistance = waypoint.x - this.#center.x;
-    const angle = Math.atan2(yDistance, xDistance);
+    let waypoint = this.#waypoints[this.#waypointIndex];
+    let yDistance = waypoint.y - this.#center.y;
+    let xDistance = waypoint.x - this.#center.x;
+    let angle = Math.atan2(yDistance, xDistance);
 
     this.#position.x += Math.cos(angle);
     this.#position.y += Math.sin(angle);
@@ -95,6 +105,8 @@ export class Entity {
       } else {
         console.log("DAMAGE FUNCTION"); // ? call damage function here
       }
+
+      console.log;
     }
   }
 }

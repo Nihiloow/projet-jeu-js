@@ -11,7 +11,7 @@ canvas.height = 320;
 const img = new Image();
 img.src = mapImage1;
 
-const entity = new Entity(30, 30);
+const entity = new Entity(30, 30, "map1");
 
 function animate() {
   requestAnimationFrame(animate);

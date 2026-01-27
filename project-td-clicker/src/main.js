@@ -1,4 +1,4 @@
-import { Game } from "./src/core/Game.js";
+import { Game } from "./core/Game.js";
 
 // Attendre que le DOM soit prêt pour éviter les erreurs d'accès [cite: 55]
 window.addEventListener("DOMContentLoaded", () => {

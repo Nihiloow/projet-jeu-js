@@ -1,66 +1,47 @@
 import { Entity } from "../Entity.js";
 import mapPaths from "../../utils/data/mapPaths.json";
 
-/**
- * Niveau 3 d'héritage : L'ennemi principal du jeu.
- */
 export class Ballon extends Entity {
   #waypoints;
   #waypointIndex = 1;
-  #hp;
-  #reward;
   #color;
 
-  constructor(mapName, hp, speed, color, reward) {
-    const paths = mapPaths[mapName];
-    if (!paths) throw new Error(`Chemin pour ${mapName} introuvable`);
+  constructor(mapName, color, speed, hp = 10) {
+    const path = mapPaths[mapName];
+    if (!path) throw new Error(`Path ${mapName} non trouvé`);
 
-    // On démarre au premier waypoint
-    super(paths[0].x, paths[0].y, 30, 30, speed);
+    // ORDRE : x, y, width, height, hp, speed
+    super(path[0].x, path[0].y, 25, 25, hp, speed);
 
-    this.#waypoints = paths;
-    this.#hp = hp;
+    this.#waypoints = path;
     this.#color = color;
-    this.#reward = reward;
 
-    // Centrage visuel initial
+    // Ajustement pour que le (x,y) de départ soit centré sur le premier point
     this.x -= this.width / 2;
     this.y -= this.height / 2;
   }
 
-  /**
-   * Logique de mouvement vers les waypoints (Pathfinding)
-   */
-  update() {
-    if (!this.isAlive) return;
-
-    // Si on a atteint le dernier point
-    if (this.#waypointIndex >= this.#waypoints.length) {
-      this.isAlive = false;
-      console.log("Dégâts au joueur !");
-      return;
-    }
+  update(dt) {
+    if (this.#waypointIndex >= this.#waypoints.length) return;
 
     const target = this.#waypoints[this.#waypointIndex];
-    const center = this.center;
+    const dx = target.x - this.center.x;
+    const dy = target.y - this.center.y;
+    const distance = Math.hypot(dx, dy);
 
-    // Calcul de l'angle vers la cible
-    const angle = Math.atan2(target.y - center.y, target.x - center.x);
+    // On utilise la vitesse héritée !
+    const moveStep = this.speed * (dt || 0.016) * 60;
 
-    // Déplacement fluide
-    this.x += Math.cos(angle) * this.speed;
-    this.y += Math.sin(angle) * this.speed;
-
-    // Vérification d'arrivée au waypoint (marge d'erreur = vitesse)
-    const dist = Math.hypot(target.x - center.x, target.y - center.y);
-    if (dist < this.speed) {
+    if (distance < moveStep) {
       this.#waypointIndex++;
+    } else {
+      const angle = Math.atan2(dy, dx);
+      this.x += Math.cos(angle) * moveStep;
+      this.y += Math.sin(angle) * moveStep;
     }
   }
 
   draw(ctx) {
-    if (!this.isAlive) return;
-
     ctx.beginPath();
     ctx.arc(this.center.x, this.center.y, this.width / 2, 0, Math.PI * 2);
     ctx.fillStyle = this.#color;

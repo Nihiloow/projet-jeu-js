@@ -9,6 +9,3 @@ window.addEventListener("DOMContentLoaded", () => {
     console.error("Échec critique du lancement :", e.message);
   }
 });
-
-const ennemy = new Entity(30, 30, "map1");
-console.log(ennemy);

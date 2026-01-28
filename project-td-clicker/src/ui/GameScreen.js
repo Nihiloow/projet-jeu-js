@@ -7,22 +7,36 @@ export class GameScreen extends Screen {
   #map;
   #ballonManager;
   #placementTileManager;
+  #mouse = {
+    x: undefined,
+    y: undefined,
+  };
 
   constructor(canvas, ctx) {
     super(canvas, ctx);
     this.#map = new Map("./public/assets/map1.png");
     this.#ballonManager = new BallonManager("map1");
-    this.#placementTileManager = new PlacementTileManager(ctx);
+    this.#placementTileManager = new PlacementTileManager(ctx, this.#mouse);
 
     // Écouteur pour lancer les rounds
     window.addEventListener("keydown", (e) => {
       if (e.code === "Space") this.#ballonManager.startNextRound();
     });
+
+    window.addEventListener("mousemove", (event) => {
+      this.#setMousePosition(event);
+    });
+  }
+
+  #setMousePosition(event) {
+    const rect = this.canvas.getBoundingClientRect();
+    console.log(rect);
+    this.#mouse.x = event.clientX - rect.left;
+    this.#mouse.y = event.clientY - rect.top;
   }
 
   update(dt) {
     this.#ballonManager.update(dt);
-    this.#placementTileManager.update();
   }
 
   draw() {
@@ -39,6 +53,7 @@ export class GameScreen extends Screen {
 
     this.#map.draw(ctx);
     this.#ballonManager.draw(ctx); // Le manager dessine tous les ballons
+    this.#placementTileManager.update();
 
     ctx.restore();
     this.#drawUI();

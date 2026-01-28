@@ -4,11 +4,13 @@ import map from "../utils/data/mapPaths.json";
 export class PlacementTileManager {
   #tilePlacements = map.towerPlacements;
   #canvas;
+  #mouse;
 
   #placementTiles = [];
 
-  constructor(canvas) {
+  constructor(canvas, mouse) {
     this.#canvas = canvas;
+    this.#mouse = mouse;
     this.init();
   }
 
@@ -18,7 +20,7 @@ export class PlacementTileManager {
         if (symbol === 1) {
           //add building placement tile here
           this.#placementTiles.push(
-            new PlacementTile(x * 16, y * 16, this.#canvas),
+            new PlacementTile(x * 16, y * 16, this.#canvas, this.#mouse),
           );
         }
       });
@@ -26,6 +28,8 @@ export class PlacementTileManager {
   }
 
   update() {
-    this.#placementTiles.forEach((placementTile) => placementTile.draw());
+    this.#placementTiles.forEach((placementTile) =>
+      placementTile.update(this.#mouse),
+    );
   }
 }

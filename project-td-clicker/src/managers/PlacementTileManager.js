@@ -27,9 +27,21 @@ export class PlacementTileManager {
     });
   }
 
-  update() {
-    this.#placementTiles.forEach((placementTile) =>
-      placementTile.update(this.#mouse),
-    );
+  update(virtualMouse) {
+    // Sécurité : si virtualMouse est mal transmis, on arrête
+    if (!virtualMouse) return;
+
+    this.#placementTiles.forEach((tile) => {
+      tile.update(virtualMouse); // On transmet la souris à chaque tuile
+    });
+  }
+
+  draw(ctx) {
+    this.#placementTiles.forEach((tile) => {
+      // On vérifie par sécurité que la méthode draw existe sur la tuile
+      if (typeof tile.draw === "function") {
+        tile.draw(ctx);
+      }
+    });
   }
 }

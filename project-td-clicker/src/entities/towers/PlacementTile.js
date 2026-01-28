@@ -2,9 +2,11 @@ import { GameObject } from "../../components/GameObject";
 
 export class PlacementTile extends GameObject {
   #canvas;
-  constructor(x, y, canvas) {
+  #mouse;
+  constructor(x, y, canvas, mouse) {
     super(x, y);
     this.#canvas = canvas;
+    this.#mouse = mouse;
   }
 
   draw() {
@@ -12,23 +14,14 @@ export class PlacementTile extends GameObject {
     this.#canvas.fillRect(this.x, this.y, 16, 16);
   }
 
-  update(mouse) {
-    this.draw();
+  update() {
     if (
-      mouse.x > this.x &&
-      mouse.x < this.x + 16 &&
-      mouse.y > this.y &&
-      mouse.y < this.y + 16
+      this.#mouse.x > this.x &&
+      this.#mouse.x < this.x + 16 &&
+      this.#mouse.y > this.y &&
+      this.#mouse.y < this.y + 16
     ) {
+      this.draw();
     }
   }
 }
-//temp
-const mouse = {
-  x: undefined,
-  y: undefined,
-};
-window.addEventListener("mousemove", (event) => {
-  mouse.x = event.clientX;
-  mouse.y = event.clientY;
-});

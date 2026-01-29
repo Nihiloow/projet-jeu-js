@@ -25,7 +25,11 @@ export class GameScreen extends Screen {
       canvas,
       this.#rawMouse,
     );
-    this.#TowerManager = new TowerManager(this.#placementTileManager, canvas);
+    this.#TowerManager = new TowerManager(
+      this.#placementTileManager,
+      ctx,
+      canvas,
+    );
 
     // 2. Gestion des événements
     this.#initEventListeners();

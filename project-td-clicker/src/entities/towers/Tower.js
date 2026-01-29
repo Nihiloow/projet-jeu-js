@@ -9,7 +9,6 @@ export class Tower extends GameObject {
   }
 
   draw() {
-    console.log(this.#canvas);
     this.#canvas.fillStyle = "blue";
     this.#canvas.fillRect(this.x, this.y, 16, 16);
   }

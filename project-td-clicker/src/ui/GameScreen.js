@@ -128,7 +128,7 @@ export class GameScreen extends Screen {
     }
 
     if (this.#TowerManager) {
-      this.#TowerManager.update(dt);
+      this.#TowerManager.update(this.ctx);
     }
   }
 

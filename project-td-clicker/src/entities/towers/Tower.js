@@ -1,10 +1,16 @@
-// src/entities/towers/Tower.js
 import { Entity } from "../Entity.js";
+import { Projectile } from "../Projectile.js";
 
 export class Tower extends Entity {
+  #projectiles = [];
+  #center;
+
   constructor(x, y) {
-    // x, y, width, height, hp, speed
-    super(x, y, 16, 16, 100, 0);
+    super(x, y, 16, 16, 1, 0);
+    this.#center = this.center;
+    this.#projectiles.push(
+      new Projectile(this.#center.x, this.#center.y, 10, 10, 10, 2, 2),
+    );
   }
 
   // On reçoit le ctx (le pinceau) ici, à chaque frame
@@ -14,5 +20,12 @@ export class Tower extends Entity {
 
     ctx.fillStyle = "blue";
     ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+
+  update(ctx) {
+    //const angle = Math.atan2();
+    this.#projectiles.forEach((projectile) => projectile.update(ctx));
+
+    this.draw(ctx);
   }
 }

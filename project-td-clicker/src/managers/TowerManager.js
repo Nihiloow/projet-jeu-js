@@ -10,9 +10,9 @@ export class TowerManager {
     this.#towerList.push(new Tower(x, y));
   }
 
-  update(dt) {
+  update(ctx) {
     this.#towerList.forEach((tower) => {
-      if (tower.update) tower.update(dt);
+      if (tower.update) tower.update(ctx);
     });
   }
 
@@ -20,7 +20,7 @@ export class TowerManager {
   draw(ctx) {
     this.#towerList.forEach((tower) => {
       // On passe le pinceau reçu du GameScreen à chaque tour
-      tower.draw(ctx);
+      tower.update(ctx);
     });
   }
 }

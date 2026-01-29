@@ -43,6 +43,6 @@ export class TowerManager {
     });
 
     //draws the list of towers
-    this.#towerList.forEach((tower) => tower.draw());
+    this.#towerList.forEach((tower) => tower.update());
   }
 }

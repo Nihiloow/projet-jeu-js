@@ -5,6 +5,7 @@ export class Tower extends Entity {
   #projectiles = [];
   #center;
   #ballonManager;
+  #target;
 
   constructor(x, y, ballonManager) {
     super(x, y, 16, 16, 1, 0);
@@ -25,6 +26,8 @@ export class Tower extends Entity {
     );
   }
 
+  findTarget() {}
+
   // On reçoit le ctx (le pinceau) ici, à chaque frame
   draw(ctx) {
     // Sécurité absolue : on vérifie que c'est bien le contexte
@@ -37,6 +40,8 @@ export class Tower extends Entity {
   update(ctx) {
     //const angle = Math.atan2();
     this.#projectiles.forEach((projectile) => projectile.update(ctx));
+
+    this.#target = findTarget();
 
     this.draw(ctx);
   }

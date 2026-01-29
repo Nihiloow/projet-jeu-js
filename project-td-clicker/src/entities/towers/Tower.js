@@ -54,7 +54,7 @@ export class Tower extends Entity {
     this.#target = this.#validEnemies[0];
 
     if (this.#target) {
-      if (this.#frames % 180 === 0) {
+      if (this.#frames % 120 === 0) {
         this.#projectiles.push(
           new Projectile(
             this.x,
@@ -66,8 +66,6 @@ export class Tower extends Entity {
         );
       }
       this.#frames++;
-    } else {
-      this.#frames = 0;
     }
   }
 }

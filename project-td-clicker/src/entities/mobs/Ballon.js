@@ -4,28 +4,37 @@ import mapPaths from "../../utils/data/mapPaths.json";
 export class Ballon extends Entity {
   #waypoints;
   #waypointIndex = 1;
+  #hasReachedEnd = false; // ✅ On déclare la variable ici pour pouvoir l'utiliser
 
   constructor(mapName, color, speed, hp = 10) {
     const path = mapPaths[mapName];
     if (!path) throw new Error(`Path ${mapName} non trouvé`);
 
-    // 1. On génère le chemin vers le sprite en fonction de la couleur
+    // On garde ton cookie.png
     const spritePath = `/assets/cookie.png`;
 
-    // 2. On passe le spritePath à Entity (7ème argument)
-    // ORDRE : x, y, width, height, hp, speed, spritePath
     super(path[0].x, path[0].y, 25, 25, hp, speed, spritePath);
 
     this.#waypoints = path;
 
-    // Ajustement pour centrer l'image sur le point de départ
+    // Ajustement pour centrer l'image
     this.x -= this.width / 2;
     this.y -= this.height / 2;
   }
 
+  /**
+   * ✅ Le "pont" vers l'extérieur : permet au manager de lire l'état
+   */
+  get hasReachedEnd() {
+    return this.#hasReachedEnd;
+  }
+
   update(dt) {
+    // Si on a atteint le dernier point du chemin
     if (this.#waypointIndex >= this.#waypoints.length) {
-      this.takeDamage(999); // Meurt pour être nettoyé
+      this.#hasReachedEnd = true;
+      // Note : on ne met pas takeDamage(999) ici, car on veut que le
+      // Manager ait le temps de compter la fuite dans sa boucle.
       return;
     }
 
@@ -34,7 +43,7 @@ export class Ballon extends Entity {
     const dy = target.y - this.center.y;
     const distance = Math.hypot(dx, dy);
 
-    // Utilisation de la vitesse héritée
+    // Calcul du pas de mouvement fluide
     const moveStep = this.speed * (dt || 0.016) * 60;
 
     if (distance < moveStep) {

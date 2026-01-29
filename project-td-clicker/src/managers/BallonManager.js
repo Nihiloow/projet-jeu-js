@@ -10,7 +10,7 @@ export class BallonManager {
   #enemiesRemainingToSpawn = 0;
   #isSpawning = false;
   #mapName;
-  #activeRoundData = null; // <--- AJOUT : On stocke les données du round en cours
+  #activeRoundData = null;
 
   constructor(mapName) {
     this.#container = new Container();
@@ -20,7 +20,6 @@ export class BallonManager {
   get container() {
     return this.#container;
   }
-
   get isRoundActive() {
     return this.#isSpawning || this.#container.count > 0;
   }
@@ -30,23 +29,18 @@ export class BallonManager {
   get currentRoundNumber() {
     return this.#currentRoundIndex + 1;
   }
-  get container() {
-    return this.#container;
+  get enemies() {
+    return this.#container.children;
   }
 
   startNextRound() {
     if (this.#isSpawning) return;
-
-    // 1. On cherche d'abord dans le JSON
-    let data = roundsData[this.#currentRoundIndex];
-
-    // 2. Si pas trouvé, on génère le round infini
-    if (!data) {
-      data = this.#generateInfiniteRound(this.#currentRoundIndex);
-    }
+    let data =
+      roundsData[this.#currentRoundIndex] ||
+      this.#generateInfiniteRound(this.#currentRoundIndex);
 
     if (data) {
-      this.#activeRoundData = data; // <--- CRUCIAL : On mémorise ces données
+      this.#activeRoundData = data;
       this.#enemiesRemainingToSpawn = data.count;
       this.#spawnTimer = 0;
       this.#isSpawning = true;
@@ -54,7 +48,18 @@ export class BallonManager {
     }
   }
 
+  // ✅ MODIFIÉ : On ajoute le retour de la valeur 'escaped'
   update(dt) {
+    let escapedCount = 0;
+
+    // 1. On détecte les fuyards AVANT l'update du container
+    this.#container.children.forEach((mob) => {
+      if (mob.hasReachedEnd && mob.hp > 0) {
+        escapedCount++;
+        mob.takeDamage(999); // On le tue pour qu'il soit nettoyé
+      }
+    });
+
     this.#handleSpawning(dt);
     this.#container.update(dt);
 
@@ -62,10 +67,11 @@ export class BallonManager {
       this.#isSpawning = false;
       this.#currentRoundIndex++;
     }
+
+    return escapedCount; // On renvoie le compte au GameScreen
   }
 
   #handleSpawning(dt) {
-    // Si on ne spawn rien ou qu'on n'a pas de données, on sort
     if (
       !this.#isSpawning ||
       this.#enemiesRemainingToSpawn <= 0 ||
@@ -75,7 +81,6 @@ export class BallonManager {
 
     this.#spawnTimer += dt * 1000;
 
-    // On utilise #activeRoundData qui contient soit le JSON, soit l'infini
     if (this.#spawnTimer >= this.#activeRoundData.interval) {
       const enemy = new Ballon(
         this.#mapName,
@@ -84,33 +89,21 @@ export class BallonManager {
         this.#activeRoundData.hp,
       );
       this.#container.add(enemy);
-
       this.#spawnTimer = 0;
       this.#enemiesRemainingToSpawn--;
     }
   }
 
   #generateInfiniteRound(index) {
-    const baseRound = roundsData[roundsData.length - 1]; // Dernier round du JSON
+    const baseRound = roundsData[roundsData.length - 1];
     const extraLevel = index - roundsData.length + 1;
-
     return {
       count: baseRound.count + extraLevel * 2,
       interval: Math.max(150, baseRound.interval * Math.pow(0.9, extraLevel)),
-      hp: Math.floor(baseRound.hp * Math.pow(1.15, extraLevel)), // +15% HP par round
+      hp: Math.floor(baseRound.hp * Math.pow(1.15, extraLevel)),
       speed: Math.min(4, baseRound.speed + extraLevel * 0.05),
-      color: "purple", // Couleur spéciale pour les vagues infinies
+      color: "purple",
     };
-  }
-
-  get isRoundActive() {
-    return this.#isSpawning || this.#container.count > 0;
-  }
-
-  // src/managers/BallonManager.js
-  get enemies() {
-    // On renvoie la liste des enfants du container (les ballons)
-    return this.#container.children;
   }
 
   draw(ctx) {

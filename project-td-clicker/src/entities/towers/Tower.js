@@ -1,31 +1,42 @@
+// src/entities/towers/Tower.js
 import { Entity } from "../Entity.js";
 import { Projectile } from "../Projectile.js";
 
+const sprite = "/assets/spr_tower_archer.png";
+
 export class Tower extends Entity {
   #projectiles = [];
-  #center;
 
   constructor(x, y) {
-    super(x, y, 16, 16, 1, 0);
-    this.#center = this.center;
+    super(x, y, 16, 16, 1, 0, sprite);
+
+    // On crée un projectile de test qui part en diagonale
     this.#projectiles.push(
-      new Projectile(this.#center.x, this.#center.y, 10, 10, 10, 2, 2),
+      new Projectile(this.center.x, this.center.y, 10, 10, 10, 2, 2),
     );
   }
 
-  // On reçoit le ctx (le pinceau) ici, à chaque frame
-  draw(ctx) {
-    // Sécurité absolue : on vérifie que c'est bien le contexte
-    if (!ctx || typeof ctx.fillRect !== "function") return;
+  // ✅ 1. UPDATE : Reçoit le temps (dt), gère uniquement la logique
+  update(dt) {
+    this.#projectiles.forEach((projectile) => {
+      // On passe dt, qui est un NOMBRE
+      projectile.update(dt);
+    });
 
-    ctx.fillStyle = "blue";
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+    // ❌ SURTOUT PAS DE this.draw(ctx) ICI !
   }
 
-  update(ctx) {
-    //const angle = Math.atan2();
-    this.#projectiles.forEach((projectile) => projectile.update(ctx));
+  // ✅ 2. DRAW : Reçoit le contexte (ctx), gère uniquement l'image
+  draw(ctx) {
+    if (!ctx) return;
 
-    this.draw(ctx);
+    // Dessine l'archer (via GameObject/Entity)
+    super.draw(ctx);
+
+    // Dessine chaque projectile
+    this.#projectiles.forEach((projectile) => {
+      // On passe ctx, qui est l'OBJET de dessin
+      projectile.draw(ctx);
+    });
   }
 }

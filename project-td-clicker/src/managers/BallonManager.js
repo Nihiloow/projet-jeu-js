@@ -96,6 +96,10 @@ export class BallonManager {
     };
   }
 
+  isRoundActive() {
+    return this.#isSpawning || this.#container.count > 0;
+  }
+
   draw(ctx) {
     this.#container.draw(ctx);
   }

@@ -15,9 +15,20 @@ export class TowerManager {
     //event to create tower on click
     this.#canvas.addEventListener("click", (event) => {
       if (this.#activeTile) {
-        this.#towerList.push(
-          new Tower(this.#activeTile.x, this.#activeTile.y, this.#ctx),
-        );
+        let isEmpty = true;
+        this.#towerList.forEach((tower) => {
+          if (
+            tower.x === this.#activeTile.x &&
+            tower.y === this.#activeTile.y
+          ) {
+            isEmpty = false;
+          }
+        });
+        if (isEmpty) {
+          this.#towerList.push(
+            new Tower(this.#activeTile.x, this.#activeTile.y, this.#ctx),
+          );
+        }
       }
     });
   }

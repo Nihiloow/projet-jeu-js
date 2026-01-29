@@ -1,3 +1,4 @@
+// src/managers/BallonManager.js
 import { Container } from "../components/Container.js";
 import { Ballon } from "../entities/mobs/Ballon.js";
 import roundsData from "../utils/data/round.json";
@@ -7,28 +8,42 @@ export class BallonManager {
   #currentRoundIndex = 0;
   #spawnTimer = 0;
   #enemiesRemainingToSpawn = 0;
-  #isSpawning = false; // Nouveau : on suit si le spawn est en cours
+  #isSpawning = false;
   #mapName;
+  #activeRoundData = null; // <--- AJOUT : On stocke les données du round en cours
 
   constructor(mapName) {
     this.#container = new Container();
     this.#mapName = mapName;
   }
 
-  // On peut passer au round suivant si on ne spawn plus rien
+  get isRoundActive() {
+    return this.#isSpawning || this.#container.count > 0;
+  }
   get canStartNext() {
     return !this.#isSpawning;
   }
+  get currentRoundNumber() {
+    return this.#currentRoundIndex + 1;
+  }
 
   startNextRound() {
-    // On ne lance le round que si le précédent a fini de spawner
     if (this.#isSpawning) return;
 
-    const roundData = roundsData[this.#currentRoundIndex];
-    if (roundData) {
-      this.#enemiesRemainingToSpawn = roundData.count;
+    // 1. On cherche d'abord dans le JSON
+    let data = roundsData[this.#currentRoundIndex];
+
+    // 2. Si pas trouvé, on génère le round infini
+    if (!data) {
+      data = this.#generateInfiniteRound(this.#currentRoundIndex);
+    }
+
+    if (data) {
+      this.#activeRoundData = data; // <--- CRUCIAL : On mémorise ces données
+      this.#enemiesRemainingToSpawn = data.count;
       this.#spawnTimer = 0;
       this.#isSpawning = true;
+      console.log(`Lancement du Round ${this.currentRoundNumber}`);
     }
   }
 
@@ -36,39 +51,52 @@ export class BallonManager {
     this.#handleSpawning(dt);
     this.#container.update(dt);
 
-    // Si on a fini de spawner TOUS les ballons du round actuel
     if (this.#isSpawning && this.#enemiesRemainingToSpawn === 0) {
       this.#isSpawning = false;
       this.#currentRoundIndex++;
-      // Note : On incrémente l'index ici pour que le bouton "Suivant"
-      // soit prêt pour le round d'après immédiatement.
     }
   }
 
   #handleSpawning(dt) {
-    if (!this.#isSpawning || this.#enemiesRemainingToSpawn <= 0) return;
+    // Si on ne spawn rien ou qu'on n'a pas de données, on sort
+    if (
+      !this.#isSpawning ||
+      this.#enemiesRemainingToSpawn <= 0 ||
+      !this.#activeRoundData
+    )
+      return;
 
-    const roundData = roundsData[this.#currentRoundIndex];
     this.#spawnTimer += dt * 1000;
 
-    if (this.#spawnTimer >= roundData.interval) {
+    // On utilise #activeRoundData qui contient soit le JSON, soit l'infini
+    if (this.#spawnTimer >= this.#activeRoundData.interval) {
       const enemy = new Ballon(
         this.#mapName,
-        roundData.color,
-        roundData.speed,
-        roundData.hp,
+        this.#activeRoundData.color,
+        this.#activeRoundData.speed,
+        this.#activeRoundData.hp,
       );
       this.#container.add(enemy);
+
       this.#spawnTimer = 0;
       this.#enemiesRemainingToSpawn--;
     }
   }
 
-  draw(ctx) {
-    this.#container.draw(ctx);
+  #generateInfiniteRound(index) {
+    const baseRound = roundsData[roundsData.length - 1]; // Dernier round du JSON
+    const extraLevel = index - roundsData.length + 1;
+
+    return {
+      count: baseRound.count + extraLevel * 2,
+      interval: Math.max(150, baseRound.interval * Math.pow(0.9, extraLevel)),
+      hp: Math.floor(baseRound.hp * Math.pow(1.15, extraLevel)), // +15% HP par round
+      speed: Math.min(4, baseRound.speed + extraLevel * 0.05),
+      color: "purple", // Couleur spéciale pour les vagues infinies
+    };
   }
 
-  get currentRoundNumber() {
-    return this.#currentRoundIndex + 1;
+  draw(ctx) {
+    this.#container.draw(ctx);
   }
 }

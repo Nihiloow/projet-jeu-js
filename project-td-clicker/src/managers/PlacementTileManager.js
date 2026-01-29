@@ -31,6 +31,20 @@ export class PlacementTileManager {
     return this.#placementTiles;
   }
 
+  getTileAt(mouse) {
+    // On parcourt toutes les tuiles de placement
+    return this.#placementTiles.find((tile) => {
+      // Collision Point-Rectangle :
+      // On vérifie si la souris est entre x et x+16, et entre y et y+16
+      return (
+        mouse.x >= tile.x &&
+        mouse.x <= tile.x + 16 &&
+        mouse.y >= tile.y &&
+        mouse.y <= tile.y + 16
+      );
+    });
+  }
+
   update(virtualMouse) {
     // Sécurité : si virtualMouse est mal transmis, on arrête
     if (!virtualMouse) return;

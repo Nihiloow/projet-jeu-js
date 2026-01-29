@@ -1,48 +1,26 @@
-import { Tower } from "../entities/towers/Tower";
-
+import { Tower } from "../entities/towers/Tower.js";
 export class TowerManager {
-  #placementTileManager;
   #towerList = [];
-  #activeTile = undefined;
-  #ctx;
-  #canvas;
 
-  constructor(placementTileManager, ctx, canvas) {
-    this.#placementTileManager = placementTileManager;
-    this.#ctx = ctx;
-    this.#canvas = canvas;
+  // Le constructeur n'a plus besoin de stocker ctx ou canvas !
+  constructor() {}
 
-    //event to create tower on click
-    this.#canvas.addEventListener("click", (event) => {
-      if (this.#activeTile) {
-        let isEmpty = true;
-        this.#towerList.forEach((tower) => {
-          if (
-            tower.x === this.#activeTile.x &&
-            tower.y === this.#activeTile.y
-          ) {
-            isEmpty = false;
-          }
-        });
-        if (isEmpty) {
-          this.#towerList.push(
-            new Tower(this.#activeTile.x, this.#activeTile.y, this.#ctx),
-          );
-        }
-      }
+  addTower(x, y) {
+    // On crée la tour simplement avec sa position
+    this.#towerList.push(new Tower(x, y));
+  }
+
+  update(ctx) {
+    this.#towerList.forEach((tower) => {
+      if (tower.update) tower.update(ctx);
     });
   }
 
-  update() {
-    //finds active tile
-    this.#activeTile = null;
-    this.#placementTileManager.placementTiles.forEach((tile) => {
-      if (tile.isHovered) {
-        return (this.#activeTile = tile);
-      }
+  // Cette méthode est appelée par GameScreen.draw(ctx)
+  draw(ctx) {
+    this.#towerList.forEach((tower) => {
+      // On passe le pinceau reçu du GameScreen à chaque tour
+      tower.update(ctx);
     });
-
-    //draws the list of towers
-    this.#towerList.forEach((tower) => tower.update());
   }
 }

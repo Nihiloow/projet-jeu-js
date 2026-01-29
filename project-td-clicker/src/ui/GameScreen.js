@@ -8,27 +8,27 @@ export class GameScreen extends Screen {
   #map;
   #ballonManager;
   #placementTileManager;
-  #TowerManager;
+  #TowerManager; // Note: Garde la majuscule si c'est ainsi dans tout ton code
 
   #rawMouse = { x: 0, y: 0 };
   #score = 0;
-  #money = 100; // On commence avec un peu d'argent pour tester
-  #clickerZone = { x: 10, y: 250, w: 60, h: 60 }; // Coin inférieur gauche (10, 250)
+  #money = 100;
+  #clickerZone = { x: 10, y: 250, w: 60, h: 60 };
 
   constructor(canvas, ctx) {
     super(canvas, ctx);
 
     this.#map = new Map("./public/assets/map1.png");
     this.#ballonManager = new BallonManager("map1");
+
+    // On passe rawMouse pour le survol (hover)
     this.#placementTileManager = new PlacementTileManager(
       canvas,
       this.#rawMouse,
     );
-    this.#TowerManager = new TowerManager(
-      this.#placementTileManager,
-      ctx,
-      canvas,
-    );
+
+    // Initialisation du TowerManager
+    this.#TowerManager = new TowerManager();
 
     this.#initEventListeners();
     this.#initClicker();
@@ -38,13 +38,17 @@ export class GameScreen extends Screen {
     this.canvas.addEventListener("click", (e) => {
       const mouse = this.getVirtualMousePos();
 
-      // Vérification du clic sur le bouton de ressources
+      // 1. Logique du bouton Clicker (Ressources)
+      // On vérifie si un round est actif (utilise le getter sans parenthèses)
       if (this.#isInside(mouse, this.#clickerZone)) {
-        this.#generateResource();
+        if (this.#ballonManager.isRoundActive) {
+          this.#generateResource();
+        }
+        return; // On s'arrête si on a cliqué sur le bouton
       }
 
-      // Ici, on pourra plus tard ajouter le check pour acheter une tour
-      // if (this.#money >= 50) { ... }
+      // 2. Logique d'achat de tour
+      this.#handleTowerPurchase(mouse);
     });
   }
 
@@ -76,6 +80,30 @@ export class GameScreen extends Screen {
     });
   }
 
+  #handleTowerPurchase(mouse) {
+    const TOWER_COST = 50;
+
+    // On cherche la tuile sous la souris
+    const targetTile = this.#placementTileManager.getTileAt(mouse);
+
+    // Si on a une tuile, qu'elle est vide et qu'on a l'argent
+    if (
+      targetTile &&
+      targetTile.isEmpty !== false &&
+      this.#money >= TOWER_COST
+    ) {
+      this.#money -= TOWER_COST;
+
+      // On informe la tuile qu'elle est occupée
+      targetTile.isEmpty = false;
+
+      // On ajoute la tour via le manager
+      this.#TowerManager.addTower(targetTile.x, targetTile.y);
+
+      console.log(`Tour achetée ! Argent restant : ${this.#money}`);
+    }
+  }
+
   getVirtualMousePos() {
     const { width, height } = this.canvas;
     const scale = Math.min(width / Map.WIDTH, height / Map.HEIGHT);
@@ -100,7 +128,7 @@ export class GameScreen extends Screen {
     }
 
     if (this.#TowerManager) {
-      this.#TowerManager.update(dt);
+      this.#TowerManager.update(this.ctx);
     }
   }
 
@@ -117,37 +145,34 @@ export class GameScreen extends Screen {
     ctx.scale(scale, scale);
     ctx.translate(-Map.WIDTH / 2, -Map.HEIGHT / 2);
 
-    // 1. Décor
     this.#map.draw(ctx);
 
-    // 2. Grille de placement (carrés blancs)
     if (this.#placementTileManager) {
       this.#placementTileManager.draw(ctx);
     }
 
-    // 3. Tours
+    // CORRECTION ICI : On appelle draw(ctx) et non update()
     if (this.#TowerManager) {
-      this.#TowerManager.update();
+      this.#TowerManager.draw(ctx); // On passe le ctx ici
     }
 
-    // 4. Ennemis
     if (this.#ballonManager) {
       this.#ballonManager.draw(ctx);
     }
 
-    // 5. Bouton Clicker
     this.#drawClickerButton(ctx);
 
     ctx.restore();
     // --- FIN DU MONDE VIRTUEL ---
 
-    // 6. Interfaces fixes (HUD)
     this.#drawUI();
     this.#drawHUD();
   }
 
   #drawClickerButton(ctx) {
-    ctx.fillStyle = "#e67e22"; // Orange
+    // Changement de couleur si inactif (hors round)
+    const isActive = this.#ballonManager.isRoundActive;
+    ctx.fillStyle = isActive ? "#e67e22" : "#7f8c8d";
     ctx.strokeStyle = "white";
     ctx.lineWidth = 2;
 
@@ -167,10 +192,7 @@ export class GameScreen extends Screen {
     ctx.fillStyle = "white";
     ctx.font = "bold 12px Arial";
     ctx.textAlign = "center";
-    // On dessine le texte au milieu du bouton
     ctx.fillText("CLIC", this.#clickerZone.x + 30, this.#clickerZone.y + 35);
-
-    // Reset du text align pour ne pas impacter les autres draw
     ctx.textAlign = "left";
   }
 
@@ -187,8 +209,7 @@ export class GameScreen extends Screen {
   }
 
   #drawHUD() {
-    this.ctx.fillStyle = "gold";
-    // Note: assurez-vous que la police est chargée ou utilisez Arial
+    this.ctx.fillStyle = this.#money >= 50 ? "gold" : "#c0392b"; // Rouge si on ne peut rien acheter
     this.ctx.font = "bold 20px Arial";
     this.ctx.fillText(`$ ${this.#money}`, 20, 90);
   }

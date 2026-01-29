@@ -1,4 +1,3 @@
-// src/components/Container.js
 import { GameObject } from "./GameObject.js";
 
 export class Container extends GameObject {
